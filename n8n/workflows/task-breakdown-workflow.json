@@ -1,0 +1,62 @@
+{
+  "name": "Spiritual Task Breakdown Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e33474d9-a7de-4ec1-9b50-9ffe0d98ba43",
+      "name": "When called by another workflow",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "spiritual-task-breakdown"
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "text": "{{ $json.task_description }}",
+        "systemMessage": "You are a compassionate AI assistant based on Donald Hoffmans consciousness research and Bahai principles. Help individuals with C-PTSD manage tasks. Break down tasks into 3-7 small steps. Include spiritual reminder about self-compassion.",
+        "model": "gpt-4o"
+      },
+      "id": "4c87f4a0-5f8b-44b2-a38c-bd3da3bf4db3",
+      "name": "Spiritual Task Breakdown (AI)",
+      "type": "n8n-nodes-langchain.openai",
+      "typeVersion": 1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "tableName": "task_breakdowns",
+        "operation": "insert",
+        "columns": {
+          "user_id": "{{ $json.user_id }}",
+          "original_task": "{{ $json.task_description }}",
+          "broken_down_tasks": "{{ $node[Spiritual Task Breakdown AI].output.content }}",
+          "created_at": "{{ $now.format(VYUR“MM-DDHHmmss) }}"
+        }
+      },
+      "id": "ebc7098f-83a8-421b-9242-f837cc929c3a",
+      "name": "Save Breakdown to DB",
+      "type": "n8n-nodes-base.sqlite",
+      "typeVersion": 1,
+      "position": [660, 300]
+    }
+  ],
+  "connections": {
+    "When called by another workflow": {
+      "main": [[{"node": "Spiritual Task Breakdown (AI)","type": "main","index": 0}]]
+    },
+    "Spiritual Task Breakdown (AI)": {
+      "main": [[{"node": "Save Breakdown to DB","type": "main","index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": ["spiritual", "task-management", "ai"]
+}
